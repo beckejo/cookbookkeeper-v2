@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'new_recipe_screen.dart';
 import 'saved_recipes_screen.dart';
 
@@ -32,17 +34,48 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  void _navigateToNewRecipeScreen() {
-    Navigator.push(
+  List<Map<String, dynamic>> _savedRecipes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedRecipes();
+  }
+
+  Future<void> _loadSavedRecipes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedRecipesString = prefs.getString('savedRecipes') ?? '[]';
+    setState(() {
+      _savedRecipes =
+          List<Map<String, dynamic>>.from(json.decode(savedRecipesString));
+    });
+  }
+
+  Future<void> _saveRecipes() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('savedRecipes', json.encode(_savedRecipes));
+  }
+
+  void _navigateToNewRecipeScreen() async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const NewRecipeScreen()),
     );
+
+    if (result != null) {
+      setState(() {
+        _savedRecipes.add(result);
+      });
+      _saveRecipes();
+    }
   }
 
   void _navigateToSavedRecipesScreen() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const SavedRecipesScreen()),
+      MaterialPageRoute(
+        builder: (context) => SavedRecipesScreen(savedRecipes: _savedRecipes),
+      ),
     );
   }
 
