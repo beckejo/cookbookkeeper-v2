@@ -3,9 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class SavedRecipesScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> savedRecipes;
-
-  const SavedRecipesScreen({super.key, required this.savedRecipes});
+  const SavedRecipesScreen({super.key});
 
   @override
   _SavedRecipesScreenState createState() => _SavedRecipesScreenState();
@@ -17,7 +15,15 @@ class _SavedRecipesScreenState extends State<SavedRecipesScreen> {
   @override
   void initState() {
     super.initState();
-    _savedRecipes = widget.savedRecipes;
+    _loadSavedRecipes();
+  }
+
+  Future<void> _loadSavedRecipes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedRecipesString = prefs.getString('savedRecipes') ?? '[]';
+    setState(() {
+      _savedRecipes = List<Map<String, dynamic>>.from(json.decode(savedRecipesString));
+    });
   }
 
   Future<void> _deleteRecipe(int index) async {
@@ -28,8 +34,7 @@ class _SavedRecipesScreenState extends State<SavedRecipesScreen> {
     prefs.setString('savedRecipes', json.encode(_savedRecipes));
   }
 
-  void _navigateToRecipeDetailsScreen(
-      BuildContext context, Map<String, dynamic> recipe) {
+  void _navigateToRecipeDetailsScreen(BuildContext context, Map<String, dynamic> recipe) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -49,16 +54,16 @@ class _SavedRecipesScreenState extends State<SavedRecipesScreen> {
         itemBuilder: (context, index) {
           final recipe = _savedRecipes[index];
           return Dismissible(
-            key: Key(recipe['name']),
+            key: Key(recipe['description']),
             onDismissed: (direction) {
               _deleteRecipe(index);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${recipe['name']} deleted')),
+                SnackBar(content: Text('${recipe['description']} deleted')),
               );
             },
             background: Container(color: Colors.red),
             child: ListTile(
-              title: Text(recipe['name']),
+              title: Text(recipe['description']),
               onTap: () => _navigateToRecipeDetailsScreen(context, recipe),
             ),
           );
@@ -75,19 +80,18 @@ class RecipeDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ingredients = recipe['ingredients'] as List<Map<String, dynamic>>;
+    final nutrients = recipe['nutrients'] as List<Map<String, dynamic>>;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(recipe['name']),
+        title: Text(recipe['description']),
       ),
       body: ListView.builder(
-        itemCount: ingredients.length,
+        itemCount: nutrients.length,
         itemBuilder: (context, index) {
-          final ingredient = ingredients[index];
+          final nutrient = nutrients[index];
           return ListTile(
-            title: Text('UPC: ${ingredient['upc']}'),
-            subtitle: Text('Weight: ${ingredient['weight']} grams'),
+            title: Text('${nutrient['nutrientName']}: ${nutrient['value']} ${nutrient['unitName']}'),
           );
         },
       ),

@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 
-class WeightMeasurementScreen extends StatelessWidget {
-  final String upc;
-  const WeightMeasurementScreen({super.key, required this.upc});
+class WeightMeasurementScreen extends StatefulWidget {
+  const WeightMeasurementScreen({super.key});
+
+  @override
+  _WeightMeasurementScreenState createState() =>
+      _WeightMeasurementScreenState();
+}
+
+class _WeightMeasurementScreenState extends State<WeightMeasurementScreen> {
+  final TextEditingController initialWeightController = TextEditingController();
+  final TextEditingController finalWeightController = TextEditingController();
+
+  void _calculateWeightUsed() {
+    final initialWeight = double.tryParse(initialWeightController.text) ?? 0;
+    final finalWeight = double.tryParse(finalWeightController.text) ?? 0;
+    final weightUsed = initialWeight - finalWeight;
+
+    Navigator.pop(context, weightUsed);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController initialWeightController =
-        TextEditingController();
-    final TextEditingController finalWeightController = TextEditingController();
-
-    void saveIngredient() {
-      final initialWeight = double.tryParse(initialWeightController.text) ?? 0;
-      final finalWeight = double.tryParse(finalWeightController.text) ?? 0;
-      final weightUsed = initialWeight - finalWeight;
-
-      Navigator.pop(context, {'upc': upc, 'weight': weightUsed});
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Weight Measurement'),
@@ -25,7 +29,7 @@ class WeightMeasurementScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          children: <Widget>[
+          children: [
             TextField(
               controller: initialWeightController,
               decoration: const InputDecoration(
@@ -33,6 +37,7 @@ class WeightMeasurementScreen extends StatelessWidget {
               ),
               keyboardType: TextInputType.number,
             ),
+            const SizedBox(height: 20),
             TextField(
               controller: finalWeightController,
               decoration: const InputDecoration(
@@ -42,7 +47,7 @@ class WeightMeasurementScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: saveIngredient,
+              onPressed: _calculateWeightUsed,
               child: const Text('Next'),
             ),
           ],

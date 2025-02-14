@@ -81,20 +81,20 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
                 itemBuilder: (context, index) {
                   final ingredient = _ingredients[index];
                   return ListTile(
-                    title: Text('UPC: ${ingredient['upc']}'),
-                    subtitle: Text('Weight: ${ingredient['weight']} grams'),
+                    title: Text(ingredient['description']),
                   );
                 },
               ),
             ),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _navigateToScanIngredientScreen,
               child: const Text('Add Ingredient'),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             ElevatedButton(
               onPressed: _finishRecipe,
-              child: const Text('Finish'),
+              child: const Text('Finish Recipe'),
             ),
           ],
         ),

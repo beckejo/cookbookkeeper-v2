@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'weight_measurement_screen.dart';
+import 'ingredient_summary_screen.dart';
 
 class ScanIngredientScreen extends StatefulWidget {
   const ScanIngredientScreen({super.key});
@@ -30,6 +31,7 @@ class _ScanIngredientScreenState extends State<ScanIngredientScreen> {
         setState(() {
           foodItem = data['foods'][0];
         });
+        navigateToWeightMeasurementScreen();
       } else {
         setState(() {
           foodItem = null;
@@ -49,18 +51,45 @@ class _ScanIngredientScreenState extends State<ScanIngredientScreen> {
     }
   }
 
-  void navigateToWeightMeasurementScreen() {
-    final upc = upcController.text;
-    Navigator.push(
+  void navigateToWeightMeasurementScreen() async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => WeightMeasurementScreen(upc: upc),
+        builder: (context) => WeightMeasurementScreen(),
       ),
-    ).then((result) {
-      if (result != null) {
-        Navigator.pop(context, result);
-      }
-    });
+    );
+
+    if (result != null) {
+      final weightUsed = result as double;
+      final adjustedNutrients = (foodItem!['foodNutrients'] as List<dynamic>).map((nutrient) {
+        final value = nutrient['value'] as double;
+        final adjustedValue = (value / 100) * weightUsed;
+        return {
+          'nutrientName': nutrient['nutrientName'],
+          'value': adjustedValue,
+          'unitName': nutrient['unitName'],
+        };
+      }).toList();
+
+      final ingredientData = {
+        'description': foodItem!['description'],
+        'nutrients': List<Map<String, dynamic>>.from(adjustedNutrients),
+      };
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => IngredientSummaryScreen(
+            description: foodItem!['description'],
+            nutrients: List<Map<String, dynamic>>.from(adjustedNutrients),
+          ),
+        ),
+      ).then((result) {
+        if (result != null) {
+          Navigator.pop(context, ingredientData);
+        }
+      });
+    }
   }
 
   @override
@@ -84,28 +113,6 @@ class _ScanIngredientScreenState extends State<ScanIngredientScreen> {
             ElevatedButton(
               onPressed: () => fetchFoodData(upcController.text),
               child: const Text('Fetch Data'),
-            ),
-            const SizedBox(height: 20),
-            if (foodItem != null)
-              Expanded(
-                child: ListView(
-                  children: [
-                    ListTile(
-                      title: Text('Description: ${foodItem!['description']}'),
-                    ),
-                    ...foodItem!['foodNutrients'].map<Widget>((nutrient) {
-                      return ListTile(
-                        title: Text(
-                            '${nutrient['nutrientName']}: ${nutrient['value']} ${nutrient['unitName']}'),
-                      );
-                    }).toList(),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: navigateToWeightMeasurementScreen,
-              child: const Text('Next'),
             ),
           ],
         ),

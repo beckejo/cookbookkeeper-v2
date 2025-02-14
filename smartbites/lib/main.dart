@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'SmartBites',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'SmartBites Home Page'),
@@ -46,8 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final prefs = await SharedPreferences.getInstance();
     final savedRecipesString = prefs.getString('savedRecipes') ?? '[]';
     setState(() {
-      _savedRecipes =
-          List<Map<String, dynamic>>.from(json.decode(savedRecipesString));
+      _savedRecipes = List<Map<String, dynamic>>.from(json.decode(savedRecipesString));
     });
   }
 
@@ -74,7 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SavedRecipesScreen(savedRecipes: _savedRecipes),
+        builder: (context) => const SavedRecipesScreen(),
       ),
     );
   }
